@@ -1,0 +1,44 @@
+/* Ensure the body and HTML fill the entire viewport */
+body, html {
+  height: 100%;
+  margin: 0;
+  padding: 0;
+  font-family: 'Kanit', sans-serif;
+  display: flex;
+  flex-direction: column; /* Ensure stacking vertically */
+  justify-content: center;
+  align-items: center;
+  overflow: hidden; 
+}
+
+h1 {
+  text-align: center; /* Center the text */
+  width: 100%; /* Ensure it spans the full width */
+  font-size: 36px;
+  color: #333;
+  margin-top: 5px; /* Adjust as needed */
+  margin-bottom: 20px; /* Adjust as needed */
+}
+
+/* Container for the video, ensures responsive aspect ratio */
+.video-container {
+  position: relative;
+  width: 90vw;  /* 90% of the viewport width */
+  height: 0;
+  padding-bottom: 56.25%; /* 16:9 aspect ratio (9/16 = 56.25%) */
+  background-color: white;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  overflow: hidden;
+}
+
+/* Video element */
+video {
+  width: 100%;
+  height: 100%;
+  object-fit: contain; /* Ensures video fits without stretching */
+  max-width: 100%;
+  max-height: 100%;
+}
+

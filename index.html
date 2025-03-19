@@ -1,0 +1,123 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0maximum-scale=1, user-scalable=no">
+  <title>Colour Average</title>
+
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Kanit:ital,wght@1,300&display=swap" rel="stylesheet">
+  <link rel="stylesheet" type="text/css" href="styledup.css"> <!-- Ensure this path is correct -->
+
+  <!-- Load p5.js -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/p5.js/1.4.0/p5.js"></script>
+
+  <!-- Load Firebase SDKs (Version 8 for Global Mode) -->
+  <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-firestore.js"></script>
+
+  <script>
+    var firebaseConfig = {
+      apiKey: "AIzaSyBYoOINI0C6KET-BsLSH-7k4-w_DwdcqPk",
+      authDomain: "colour-base.firebaseapp.com",
+      projectId: "colour-base",
+      storageBucket: "colour-base.appspot.com",
+      messagingSenderId: "960380857330",
+      appId: "1:960380857330:web:448de73b75ffe4d4d7196b",
+      measurementId: "G-QHZ0TTPZHT"
+    };
+
+    firebase.initializeApp(firebaseConfig);
+    var db = firebase.firestore();
+  </script>
+
+  <script>
+    let video;
+    let captureButton;
+    let videoWidth;
+    let videoHeight;
+    let avgColor = [255, 255, 255]; // Default white
+    let analyzing = false;
+
+    function setup() {
+      createCanvas(480, 640);
+      
+      // Start video capture with the environment-facing camera
+      video = createCapture(
+        {
+          audio: false,
+          video: {
+            facingMode: "environment",
+          },
+        },
+        function (e) {
+          console.log('Video loaded:', video);
+          videoWidth = video.width;
+          videoHeight = video.height;
+        }
+      );
+      video.hide();
+      
+      captureButton = createButton("Capture Image");
+      captureButton.style("font-size", "20px");  // Increase text size
+captureButton.style("padding", "5px 10px");  // Increase button size
+captureButton.style("border-radius", "10px");  // Add rounded corners
+captureButton.style("background-color", "#ffffff");  // Change button color
+captureButton.style("color", "black");
+      captureButton.position(windowWidth / 2 - captureButton.width, 570);
+      captureButton.mousePressed(getAverageColor);
+    }
+
+    function draw() {
+      if (analyzing) {
+        background(avgColor);
+      } else {
+        image(video, 0, 0, width, height);
+      }
+    }
+
+    function getAverageColor() {
+      video.loadPixels();
+      if (video.pixels.length > 0) {
+        let r = 0, g = 0, b = 0, count = 0;
+
+        for (let y = 0; y < video.height; y++) {
+          for (let x = 0; x < video.width; x++) {
+            let index = (x + y * video.width) * 4;
+            r += video.pixels[index];
+            g += video.pixels[index + 1];
+            b += video.pixels[index + 2];
+            count++;
+          }
+        }
+
+        avgColor = [r / count, g / count, b / count];
+        analyzing = true;
+
+        if (typeof firebase !== "undefined" && db) {
+          saveColorToFirebase(avgColor);
+        } else {
+          console.error("Firebase is not initialized!");
+        }
+      }
+    }
+
+    function saveColorToFirebase(color) {
+      db.collection("colors").add({
+        r: color[0],
+        g: color[1],
+        b: color[2],
+        timestamp: firebase.firestore.FieldValue.serverTimestamp()
+      })
+      .then(docRef => console.log("Document written with ID:", docRef.id))
+      .catch(error => console.error("Error adding document:", error));
+    }
+  </script>
+</head>
+<body>
+  <h1>Colour Average</h1>
+</body>
+</html>
+
+
