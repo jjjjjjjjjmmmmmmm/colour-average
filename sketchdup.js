@@ -74,14 +74,38 @@ function getAverageColor() {
     avgColor = [r / count, g / count, b / count];
     analyzing = true;
 
-downloadColor(avgColor); // Trigger download
-captureButton.mousePressed(function() {
-  getAverageColor();
-    captureButton.html("Download Colour"); // Change button text
-    captureButton.mousePressed(() => downloadColor(avgColor)); // Change function on click
-  }
+function getAverageColor() {
+  video.loadPixels();
+  if (video.pixels.length > 0) {
+    let r = 0, g = 0, b = 0, count = 0;
 
-function downloadColor(color) {
+    for (let y = 0; y < video.height; y++) {
+      for (let x = 0; x < video.width; x++) {
+        let index = (x + y * video.width) * 4;
+        r += video.pixels[index];
+        g += video.pixels[index + 1];
+        b += video.pixels[index + 2];
+        count++;
+      }
+    }
+
+    avgColor = [r / count, g / count, b / count];
+    analyzing = true;
+
+    // Immediately call downloadColor after calculating average
+    downloadColor(avgColor);  
+
+    // Change button text to "Download Color" after color is calculated
+    captureButton.html("Download Colour");  
+
+    // Attach downloadColor function to the button
+    captureButton.mousePressed(function() {  
+      downloadColor(avgColor);  // Trigger the download when button is pressed
+    });
+  }
+}
+
+    function downloadColor(color) {
   let colorCanvas = createGraphics(100, 100);
   colorCanvas.background(color[0], color[1], color[2]); 
   colorCanvas.loadPixels();
@@ -107,19 +131,6 @@ function saveColorToFirebase(color) {
   .then(docRef => console.log("Document written with ID:", docRef.id))
   .catch(error => console.error("Error adding document:", error));
 }
-function getAverageColor() {
-  video.loadPixels();
-  if (video.pixels.length > 0) {
-    let r = 0, g = 0, b = 0, count = 0;
 
-    for (let y = 0; y < video.height; y++) {
-      for (let x = 0; x < video.width; x++) {
-        let index = (x + y * video.width) * 4;
-        r += video.pixels[index];
-        g += video.pixels[index + 1];
-        b += video.pixels[index + 2];
-        count++;
-      }
-    }
 
 
