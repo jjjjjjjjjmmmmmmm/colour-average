@@ -92,3 +92,42 @@ function saveColorToFirebase(color) {
   .then(docRef => console.log("Document written with ID:", docRef.id))
   .catch(error => console.error("Error adding document:", error));
 }
+function getAverageColor() {
+  video.loadPixels();
+  if (video.pixels.length > 0) {
+    let r = 0, g = 0, b = 0, count = 0;
+
+    for (let y = 0; y < video.height; y++) {
+      for (let x = 0; x < video.width; x++) {
+        let index = (x + y * video.width) * 4;
+        r += video.pixels[index];
+        g += video.pixels[index + 1];
+        b += video.pixels[index + 2];
+        count++;
+      }
+    }
+
+    avgColor = [r / count, g / count, b / count];
+    analyzing = true;
+
+    // Change button text
+    captureButton.html("Download Colour");
+    captureButton.mousePressed(downloadColor);
+  }
+}
+
+function downloadColor() {
+  let colorCanvas = createGraphics(100, 100); // Create a small 100x100 canvas
+  colorCanvas.background(avgColor[0], avgColor[1], avgColor[2]); // Fill with the captured color
+  
+  colorCanvas.loadPixels();
+  let imgData = colorCanvas.canvas.toDataURL("image/png"); // Convert to image data
+  
+  // Create a download link
+  let a = document.createElement("a");
+  a.href = imgData;
+  a.download = "captured_color.png";
+  document.body.appendChild(a);
+  a.click();
+  document.body.removeChild(a);
+}
