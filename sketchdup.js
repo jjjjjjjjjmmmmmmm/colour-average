@@ -58,6 +58,7 @@ function draw() {
 
 function getAverageColor() {
   video.loadPixels();
+  console.log("Pixels Loaded:", video.pixels.length);
   if (video.pixels.length > 0) {
     let r = 0, g = 0, b = 0, count = 0;
 
@@ -79,6 +80,7 @@ function getAverageColor() {
 
     // Change button text to "Download Colour" after color is calculated
     captureButton.html("Download Colour");  
+console.log("Button Text:", captureButton.html());
 
     // Attach downloadColor function to the button
     captureButton.mousePressed(function() {  
