@@ -23,7 +23,7 @@ h1 {
 /* Container for the video, ensures responsive aspect ratio */
 .video-container {
   position: relative;
-  width: 90vw;  /* 90% of the viewport width */
+  width: 100vw;  /* 90% of the viewport width */
   height: 0;
   padding-bottom: 56.25%; /* 16:9 aspect ratio (9/16 = 56.25%) */
   background-color: white;
