@@ -1,43 +1,54 @@
 let video;
+let videoWidth;
+let videoHeight;
 let captureButton;
 let avgColor = [255, 255, 255]; // Default white
 let analyzing = false;
 
 function setup() {
-  createCanvas(480, 640);
+  let canvasWidth = min(windowWidth, 480);
+  let canvasHeight = canvasWidth * (9 / 16);
 
-  // Start video capture
+  let canvas = createCanvas(canvasWidth, canvasHeight);
+  canvas.position((windowWidth - canvasWidth) / 2, 100); // Center the canvas
+
   video = createCapture({
     audio: false,
     video: {
       facingMode: "environment",
     },
-  }, function () {
-    console.log('Video loaded:', video);
   });
+
+  video.size(canvasWidth, canvasHeight);
   video.hide();
 
-  // Create and style the button
+  // Create button with an ID for CSS positioning
   captureButton = createButton("Capture Image");
-  captureButton.style("font-size", "20px");
-  captureButton.style("padding", "5px 10px");
-  captureButton.style("border-radius", "10px");
-  captureButton.style("background-color", "#ffffff");
-  captureButton.style("color", "black");
-  captureButton.position(windowWidth / 2 - captureButton.width / 2 - 11, 570);
+  captureButton.id("capture-btn"); // Assign ID
+  captureButton.mousePressed(getAverageColor);
 
-  // Button press triggers getAverageColor()
-  captureButton.mousePressed(function () {
-    // Change the button text immediately after it is pressed
-    captureButton.html("Processing...");
+  // Manually position the button after it is created
+  positionButton();
+}
 
-    // Call function to get the average color
-    getAverageColor();
-  });
+// Adjust button position dynamically when window resizes
+function windowResized() {
+  let newWidth = min(windowWidth, 480);
+  let newHeight = newWidth * (9 / 16);
+  resizeCanvas(newWidth, newHeight);
+  video.size(newWidth, newHeight);
+
+  // Reposition button after resizing
+  positionButton();
+}
+
+function positionButton() {
+  let buttonX = windowWidth / 2 - 75; // Center horizontally
+  let buttonY = 550; // Adjust manually to your desired vertical position
+  captureButton.position(buttonX, buttonY);
 }
 
 function draw() {
-  // Draw the video or color background
   if (analyzing) {
     background(avgColor);
   } else {
@@ -63,26 +74,35 @@ function getAverageColor() {
     avgColor = [r / count, g / count, b / count];
     analyzing = true;
 
-    // After processing, change the button text to 'Download Colour'
-    captureButton.html("Download Colour");
-
-    // Optionally: Save the color to Firebase or trigger the download here
-    saveColorToFirebase(avgColor);
+    // Disable video capture and update button
+    video.stop();
+    captureButton.html("Refresh Page");
+    captureButton.mousePressed(refreshPage);
   }
+}
+
+function refreshPage() {
+  location.reload(); // Refreshes the page
+}
+
+function downloadColor(color) {
+  let colorCanvas = createGraphics(100, 100);
+  colorCanvas.background(color[0], color[1], color[2]); 
+  colorCanvas.loadPixels();
+  save(colorCanvas, "colour.png");
 }
 
 function saveColorToFirebase(color) {
-  if (typeof firebase !== "undefined" && db) {
-    db.collection("colors").add({
-      r: color[0],
-      g: color[1],
-      b: color[2],
-      timestamp: firebase.firestore.FieldValue.serverTimestamp(),
-    })
-    .then(docRef => console.log("Document written with ID:", docRef.id))
-    .catch(error => console.error("Error adding document:", error));
-  }
+  db.collection("colors").add({
+    r: color[0],
+    g: color[1],
+    b: color[2],
+    timestamp: firebase.firestore.FieldValue.serverTimestamp()
+  })
+  .then(docRef => console.log("Document written with ID:", docRef.id))
+  .catch(error => console.error("Error adding document:", error));
 }
+
 
 
 
