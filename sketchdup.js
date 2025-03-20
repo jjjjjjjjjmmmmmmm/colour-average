@@ -75,19 +75,19 @@ function getAverageColor() {
     analyzing = true;
 
 downloadColor(avgColor); // Trigger download
-
-    captureButton.html("Download Color"); // Change button text
+captureButton.mousePressed(function() {
+  getAverageColor();
+    captureButton.html("Download Colour"); // Change button text
     captureButton.mousePressed(() => downloadColor(avgColor)); // Change function on click
   }
-}
 
 function downloadColor(color) {
   let colorCanvas = createGraphics(100, 100);
-  colorCanvas.background(color);
-  
+  colorCanvas.background(color[0], color[1], color[2]); 
   colorCanvas.loadPixels();
-  save(colorCanvas, "colour.png"); // Save as an image file
+  save(colorCanvas, "colour.png");
 }
+
     
     if (typeof firebase !== "undefined" && db) {
       saveColorToFirebase(avgColor);
