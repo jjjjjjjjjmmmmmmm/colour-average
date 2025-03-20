@@ -1,54 +1,43 @@
 let video;
-let videoWidth;
-let videoHeight;
 let captureButton;
 let avgColor = [255, 255, 255]; // Default white
 let analyzing = false;
 
 function setup() {
-  let canvasWidth = min(windowWidth, 480);
-  let canvasHeight = canvasWidth * (9 / 16);
+  createCanvas(480, 640);
 
-  let canvas = createCanvas(canvasWidth, canvasHeight);
-  canvas.position((windowWidth - canvasWidth) / 2, 100); // Center the canvas
-
+  // Start video capture
   video = createCapture({
     audio: false,
     video: {
       facingMode: "environment",
     },
+  }, function () {
+    console.log('Video loaded:', video);
   });
-
-  video.size(canvasWidth, canvasHeight);
   video.hide();
 
-  // Create button with an ID for CSS positioning
+  // Create and style the button
   captureButton = createButton("Capture Image");
-  captureButton.id("capture-btn"); // Assign ID
-  captureButton.mousePressed(getAverageColor);
+  captureButton.style("font-size", "20px");
+  captureButton.style("padding", "5px 10px");
+  captureButton.style("border-radius", "10px");
+  captureButton.style("background-color", "#ffffff");
+  captureButton.style("color", "black");
+  captureButton.position(windowWidth / 2 - captureButton.width / 2 - 11, 570);
 
-  // Manually position the button after it is created
-  positionButton();
-}
+  // Button press triggers getAverageColor()
+  captureButton.mousePressed(function () {
+    // Change the button text immediately after it is pressed
+    captureButton.html("Processing...");
 
-// Adjust button position dynamically when window resizes
-function windowResized() {
-  let newWidth = min(windowWidth, 480);
-  let newHeight = newWidth * (9 / 16);
-  resizeCanvas(newWidth, newHeight);
-  video.size(newWidth, newHeight);
-
-  // Reposition button after resizing
-  positionButton();
-}
-
-function positionButton() {
-  let buttonX = windowWidth / 2 - 75; // Center horizontally
-  let buttonY = 550; // Adjust manually to your desired vertical position
-  captureButton.position(buttonX, buttonY);
+    // Call function to get the average color
+    getAverageColor();
+  });
 }
 
 function draw() {
+  // Draw the video or color background
   if (analyzing) {
     background(avgColor);
   } else {
@@ -58,7 +47,6 @@ function draw() {
 
 function getAverageColor() {
   video.loadPixels();
-  console.log("Pixels Loaded:", video.pixels.length);
   if (video.pixels.length > 0) {
     let r = 0, g = 0, b = 0, count = 0;
 
@@ -75,38 +63,26 @@ function getAverageColor() {
     avgColor = [r / count, g / count, b / count];
     analyzing = true;
 
-    // Immediately call downloadColor after calculating average
-    downloadColor(avgColor);  
+    // After processing, change the button text to 'Download Colour'
+    captureButton.html("Download Colour");
 
-    // Change button text to "Download Colour" after color is calculated
-    captureButton.html("Download Colour");  
-console.log("Button Text:", captureButton.html());
-
-    // Attach downloadColor function to the button
-    captureButton.mousePressed(function() {  
-      downloadColor(avgColor);  // Trigger the download when button is pressed
-    });
+    // Optionally: Save the color to Firebase or trigger the download here
+    saveColorToFirebase(avgColor);
   }
 }
 
-function downloadColor(color) {
-  let colorCanvas = createGraphics(100, 100);
-  colorCanvas.background(color[0], color[1], color[2]); 
-  colorCanvas.loadPixels();
-  save(colorCanvas, "colour.png");
-}
-
 function saveColorToFirebase(color) {
-  db.collection("colors").add({
-    r: color[0],
-    g: color[1],
-    b: color[2],
-    timestamp: firebase.firestore.FieldValue.serverTimestamp()
-  })
-  .then(docRef => console.log("Document written with ID:", docRef.id))
-  .catch(error => console.error("Error adding document:", error));
+  if (typeof firebase !== "undefined" && db) {
+    db.collection("colors").add({
+      r: color[0],
+      g: color[1],
+      b: color[2],
+      timestamp: firebase.firestore.FieldValue.serverTimestamp(),
+    })
+    .then(docRef => console.log("Document written with ID:", docRef.id))
+    .catch(error => console.error("Error adding document:", error));
+  }
 }
-
 
 
 
